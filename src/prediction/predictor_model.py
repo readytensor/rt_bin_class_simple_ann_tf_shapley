@@ -1,20 +1,18 @@
-import warnings
-from typing import Optional
 import os
 import warnings
+from typing import Optional
 
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.exceptions import NotFittedError
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.regularizers import l1_l2
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, Callback, LambdaCallback
+from sklearn.exceptions import NotFittedError
+from tensorflow.keras.callbacks import Callback, EarlyStopping, LambdaCallback
+from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.losses import BinaryCrossentropy
-
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l1_l2
 
 from logger import get_logger
 
@@ -62,7 +60,7 @@ class Classifier:
 
     def __init__(
         self,
-        D: int,
+        D: Optional[int] = None,
         l1_reg: Optional[float] = 1e-3,
         l2_reg: Optional[float] = 1e-1,
         lr: Optional[float] = 1e-3,
@@ -71,7 +69,8 @@ class Classifier:
         """Construct a new binary classifier.
 
         Args:
-            D (int): dimensionality of input data.
+            D (int, optional): L1 regularization penalty.
+                Defaults to None.
             l1_reg (int, optional): L1 regularization penalty.
                 Defaults to 1e-3.
             l2_reg (int, optional): L2 regularization penalty.
@@ -83,16 +82,12 @@ class Classifier:
         self.l1_reg = np.float(l1_reg)
         self.l2_reg = np.float(l2_reg)
         self.lr = lr
-        self.model = self.build_model()
-        self.model.compile(
-            loss=BinaryCrossentropy(),
-            optimizer=Adam(learning_rate=self.lr),
-            # optimizer=SGD(learning_rate=self.lr),
-            metrics=["accuracy"],
-        )
+        # defer building model until fit because we need to know
+        # dimensionality of data (D) to define the size of
+        # input layer
+        self.model = None
 
     def build_model(self):
-
         M1 = max(2, int(self.D * 1.5))
         M2 = max(5, int(self.D * 0.33))
 
@@ -101,41 +96,51 @@ class Classifier:
         x = input_
         x = Dense(M1, activity_regularizer=reg, activation="relu")(x)
         x = Dense(M2, activity_regularizer=reg, activation="relu")(x)
-        x = Dense(1, activity_regularizer=reg, activation='sigmoid')(x)
+        x = Dense(1, activity_regularizer=reg, activation="sigmoid")(x)
         output_ = x
         model = Model(input_, output_)
         # model.summary()
+        model.compile(
+            loss=BinaryCrossentropy(),
+            optimizer=Adam(learning_rate=self.lr),
+            # optimizer=SGD(learning_rate=self.lr),
+            metrics=["accuracy"],
+        )
         return model
 
     def fit(
-            self,
-            train_inputs: pd.DataFrame,
-            train_targets: pd.Series,
-            batch_size=100,
-            epochs=1000,
-        ) -> None:
+        self,
+        train_inputs: pd.DataFrame,
+        train_targets: pd.Series,
+        batch_size=100,
+        epochs=1000,
+    ) -> None:
         """Fit the classifier to the training data.
 
         Args:
             train_inputs (pandas.DataFrame): The features of the training data.
             train_targets (pandas.Series): The labels of the training data.
         """
+        # get data dimensionality and build network
+        self.D = train_inputs.shape[1]
+        self.model = self.build_model()
+
+        # set seed for reproducibility
         tf.random.set_seed(0)
+
         # use 15% validation split if at least 300 samples in training data
         if train_inputs.shape[0] < 300:
             loss_to_monitor = "loss"
-            validation_split=None
+            validation_split = None
         else:
             loss_to_monitor = "val_loss"
-            validation_split=0.15
+            validation_split = 0.15
 
         early_stop_callback = EarlyStopping(
-            monitor=loss_to_monitor,
-            min_delta=1e-3,
-            patience=30
+            monitor=loss_to_monitor, min_delta=1e-3, patience=30
         )
         infcost_stop_callback = InfCostStopCallback()
-        logger_callback = LambdaCallback(on_epoch_end=log_epoch)
+        # logger_callback = LambdaCallback(on_epoch_end=log_epoch)
 
         self.model.fit(
             x=train_inputs,
@@ -143,16 +148,15 @@ class Classifier:
             batch_size=batch_size,
             validation_split=validation_split,
             epochs=epochs,
-            verbose=1,
             shuffle=True,
+            verbose=False,
             callbacks=[
                 early_stop_callback,
                 infcost_stop_callback,
-                logger_callback,
+                # logger_callback,
             ],
         )
 
-    
     def _predict(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predict class 1 probabilities for the given data.
 
@@ -161,8 +165,11 @@ class Classifier:
         Returns:
             numpy.ndarray: The predicted class 1 probabilities.
         """
-        return self.model.predict(inputs, verbose=1)
-
+        # logger_callback = LambdaCallback(on_epoch_end=log_epoch)
+        return self.model.predict(
+            inputs,
+            # callbacks=[logger_callback],
+        )
 
     def predict(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predict class labels for the given data.
@@ -172,9 +179,9 @@ class Classifier:
         Returns:
             numpy.ndarray: The predicted class labels.
         """
-        class1_probs = self._predict(inputs, verbose=1).reshape(-1, 1)
+        class1_probs = self._predict(inputs).reshape(-1, 1)
         predicted_labels = (class1_probs >= 0.5).astype(int)
-        return predicted_labels
+        return np.squeeze(predicted_labels)
 
     def predict_proba(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predict class probabilities for the given data.
@@ -214,6 +221,8 @@ class Classifier:
         Args:
             model_dir_path (str): The dir path to which to save the model.
         """
+        if self.model is None:
+            raise NotFittedError("Model is not fitted yet.")
         model_params = {
             "D": self.D,
             "l1_reg": self.l1_reg,
@@ -232,8 +241,11 @@ class Classifier:
         Returns:
             Classifier: A new instance of the loaded binary classifier.
         """
+        if not os.path.exists(model_dir_path):
+            raise FileNotFoundError(f"Model dir {model_dir_path} does not exist.")
         model_params = joblib.load(os.path.join(model_dir_path, MODEL_PARAMS_FNAME))
         classifier_model = cls(**model_params)
+        classifier_model.model = classifier_model.build_model()
         classifier_model.model.load_weights(
             os.path.join(model_dir_path, MODEL_WTS_FNAME)
         ).expect_partial()
@@ -263,8 +275,7 @@ def train_predictor_model(
     Returns:
         'Classifier': The classifier model
     """
-    data_based_params = get_data_based_model_hyperparams(train_inputs)
-    classifier = Classifier(**data_based_params, **hyperparameters)
+    classifier = Classifier(**hyperparameters)
     classifier.fit(train_inputs=train_inputs, train_targets=train_targets)
     return classifier
 
@@ -299,8 +310,7 @@ def save_predictor_model(model: Classifier, model_dir_path: str) -> None:
     """
     if not os.path.exists(model_dir_path):
         os.makedirs(model_dir_path)
-    model.save(os.path.join(model_dir_path))
-
+    model.save(model_dir_path)
 
 
 def load_predictor_model(model_dir_path: str) -> Classifier:
@@ -341,12 +351,3 @@ def save_training_history(history, dir_path):
     hist_json_file = os.path.join(dir_path, HISTORY_FNAME)
     with open(hist_json_file, mode="w") as file_:
         hist_df.to_json(file_)
-
-
-def get_data_based_model_hyperparams(data):
-    """
-    Set any model hyperparameters that are data dependent.
-    For example, number of neurons in input layer of a neural network
-    as a function of data shape.
-    """
-    return {"D": data.shape[1]}
