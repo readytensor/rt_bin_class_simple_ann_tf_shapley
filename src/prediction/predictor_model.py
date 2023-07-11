@@ -11,7 +11,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.regularizers import l1_l2
-from tensorflow.keras.optimizers import SGD, Adam
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, Callback, LambdaCallback
 from tensorflow.keras.losses import BinaryCrossentropy
 
