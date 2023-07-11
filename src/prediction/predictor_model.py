@@ -50,27 +50,23 @@ class InfCostStopCallback(Callback):
 
 
 class Classifier:
-    """A wrapper class for the ANN Binary classifier in Tensorflow.
-
-    This class provides a consistent interface that can be used with other
-    classifier models.
-    """
+    """A wrapper class for the ANN Binary classifier in Tensorflow."""
 
     model_name = "simple_ANN_tensorflow_binary_classifier"
 
     def __init__(
-        self,
-        D: Optional[int] = None,
-        l1_reg: Optional[float] = 1e-3,
-        l2_reg: Optional[float] = 1e-1,
-        lr: Optional[float] = 1e-3,
-        **kwargs,
-    ):
+            self,
+            D: Optional[int] = None,
+            l1_reg: Optional[float] = 1e-3,
+            l2_reg: Optional[float] = 1e-1,
+            lr: Optional[float] = 1e-3,
+            **kwargs,
+        ):
         """Construct a new binary classifier.
 
         Args:
-            D (int, optional): L1 regularization penalty.
-                Defaults to None.
+            D (int, optional): Size of the input layer.
+                Defaults to None (set in `fit`).
             l1_reg (int, optional): L1 regularization penalty.
                 Defaults to 1e-3.
             l2_reg (int, optional): L2 regularization penalty.
@@ -140,7 +136,7 @@ class Classifier:
             monitor=loss_to_monitor, min_delta=1e-3, patience=30
         )
         infcost_stop_callback = InfCostStopCallback()
-        # logger_callback = LambdaCallback(on_epoch_end=log_epoch)
+        logger_callback = LambdaCallback(on_epoch_end=log_epoch)
 
         self.model.fit(
             x=train_inputs,
@@ -153,7 +149,7 @@ class Classifier:
             callbacks=[
                 early_stop_callback,
                 infcost_stop_callback,
-                # logger_callback,
+                logger_callback,
             ],
         )
 
@@ -165,10 +161,10 @@ class Classifier:
         Returns:
             numpy.ndarray: The predicted class 1 probabilities.
         """
-        # logger_callback = LambdaCallback(on_epoch_end=log_epoch)
+        logger_callback = LambdaCallback(on_epoch_end=log_epoch)
         return self.model.predict(
             inputs,
-            # callbacks=[logger_callback],
+            callbacks=[logger_callback],
         )
 
     def predict(self, inputs: pd.DataFrame) -> np.ndarray:
