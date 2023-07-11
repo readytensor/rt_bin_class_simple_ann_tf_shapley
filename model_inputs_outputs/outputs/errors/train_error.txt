@@ -1,0 +1,7 @@
+Error occurred during training. Error: module 'os' has no attribute 'mkdirs'
+Traceback (most recent call last):
+  File "C:\Users\abbus\Documents\GitRepos\rt_repos\rt-models\model_composition\binary_classification\base\repo\src\train.py", line 76, in run_training
+    save_schema(schema=data_schema, save_dir_path=saved_schema_dir_path)
+  File "C:\Users\abbus\Documents\GitRepos\rt_repos\rt-models\model_composition\binary_classification\base\repo\src\schema\data_schema.py", line 359, in save_schema
+    os.mkdirs(save_dir_path)
+AttributeError: module 'os' has no attribute 'mkdirs'

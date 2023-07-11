@@ -1,0 +1,9 @@
+Error occurred during prediction. Error: 'Classifier' object has no attribute 'transform'
+Traceback (most recent call last):
+  File "C:\Users\abbus\Documents\GitRepos\my_gh_repos\model_composition\binary_classification\base\repo\src\predict.py", line 115, in run_batch_predictions
+    transformed_data, _ = transform_data(
+  File "C:\Users\abbus\Documents\GitRepos\my_gh_repos\model_composition\binary_classification\base\repo\src\preprocessing\preprocess.py", line 67, in transform_data
+    transformed_inputs = transform_inputs(preprocess_pipeline, data)
+  File "C:\Users\abbus\Documents\GitRepos\my_gh_repos\model_composition\binary_classification\base\repo\src\preprocessing\pipeline.py", line 166, in transform_inputs
+    return pipeline.transform(input_data)
+AttributeError: 'Classifier' object has no attribute 'transform'

@@ -1,0 +1,5 @@
+Error occurred loading model for serving. Error: __init__() missing 1 required positional argument: 'explainer_file_path'
+Traceback (most recent call last):
+  File "C:\Users\abbus\Documents\GitRepos\rt_repos\rt-models\model_composition\binary_classification\base\repo\src\serve_utils.py", line 63, in get_model_resources
+    model_resources = ModelResources(
+TypeError: __init__() missing 1 required positional argument: 'explainer_file_path'

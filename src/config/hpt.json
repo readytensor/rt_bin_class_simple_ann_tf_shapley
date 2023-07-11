@@ -1,0 +1,29 @@
+{
+  "num_trials": 15,
+  "hyperparameters": [
+    {
+      "name": "l1_reg",
+      "short_desc": "L1 regularization penalty.",
+      "type": "real",
+      "range_low": 1e-7,
+      "range_high": 1e-1,
+      "search_type": "log-uniform"
+    },
+    {
+      "name": "l2_reg",
+      "short_desc": "L2 regularization penalty.",
+      "type": "real",
+      "range_low": 1e-7,
+      "range_high": 1e-1,
+      "search_type": "log-uniform"
+    },
+    {
+      "name": "lr",
+      "short_desc": "Learning rate for optimizer.",
+      "type": "real",
+      "range_low": 1e-5,
+      "range_high": 5e-1,
+      "search_type": "log-uniform"
+    }
+  ]
+}
