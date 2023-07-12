@@ -1,6 +1,6 @@
 import os
 import warnings
-from typing import Optional
+from typing import Optional, Dict, Callable
 
 import joblib
 import numpy as np
@@ -29,16 +29,38 @@ COST_THRESHOLD = float("inf")
 logger = get_logger(task_name="tf_model_training")
 
 
-def log_epoch(epoch, logs):
+def create_logger(log_period: int, log_type: str = 'epoch') -> Callable:
     """
-    Logger for the training step.
+    Create a logging function to log information every log_period epochs or batches.
 
-    Logs each epoch's logs to the logger including:
-        - Epoch number
-        - Logs from training
+    This function creates and returns another function:
+        `log_function(log_count, logs)`
+    which checks if the current log_count number (either epoch or batch number)
+    is a multiple of the specified log_period. If it is, it logs the log_count number
+    and the logs information.
+
+    Args:
+        log_period (int): The period at which to log information. For example, if
+                    log_period is 10, the logging will happen at every 10th epoch
+                    or batch (e.g., 0th, 10th, 20th, etc.)
+        log_type (str): A string that is either 'epoch' or 'batch' specifying the
+                    type of logging.
+                    Defaults to 'epoch'.
+
+    Returns:
+        Callable: The log_function function that logs every log_period epochs
+                    or batches.
     """
-    logger.info(f"Epoch: {epoch}")
-    logger.info(f"Logs: {logs}")
+
+    def log_function(log_count: int, logs: Dict) -> None:
+        logs_str = ""
+        for k,v in logs.items():
+            logs_str += f"{k}: {np.round(v, 4)}  "
+        if log_count % log_period == 0:
+            logger.info(f"{log_type.capitalize()}: {log_count}, Metrics: {logs_str}")
+
+    return log_function
+
 
 
 class InfCostStopCallback(Callback):
@@ -55,13 +77,13 @@ class Classifier:
     model_name = "simple_ANN_tensorflow_binary_classifier"
 
     def __init__(
-        self,
-        D: Optional[int] = None,
-        l1_reg: Optional[float] = 1e-3,
-        l2_reg: Optional[float] = 1e-1,
-        lr: Optional[float] = 1e-3,
-        **kwargs,
-    ):
+            self,
+            D: Optional[int] = None,
+            l1_reg: Optional[float] = 1e-3,
+            l2_reg: Optional[float] = 1e-1,
+            lr: Optional[float] = 1e-3,
+            **kwargs,
+        ):
         """Construct a new binary classifier.
 
         Args:
@@ -78,6 +100,7 @@ class Classifier:
         self.l1_reg = np.float(l1_reg)
         self.l2_reg = np.float(l2_reg)
         self.lr = lr
+        self._log_period=10 # logging per 10 epochs
         # defer building model until fit because we need to know
         # dimensionality of data (D) to define the size of
         # input layer
@@ -136,7 +159,9 @@ class Classifier:
             monitor=loss_to_monitor, min_delta=1e-3, patience=30
         )
         infcost_stop_callback = InfCostStopCallback()
-        logger_callback = LambdaCallback(on_epoch_end=log_epoch)
+        logger_callback = LambdaCallback(
+            on_epoch_end=create_logger(self._log_period, 'epoch'))
+
 
         self.model.fit(
             x=train_inputs,
@@ -153,19 +178,30 @@ class Classifier:
             ],
         )
 
-    def _predict(self, inputs: pd.DataFrame) -> np.ndarray:
+    def _predict(self, inputs: pd.DataFrame, batch_size: int = 64) -> np.ndarray:
         """Predict class 1 probabilities for the given data.
 
         Args:
             inputs (pandas.DataFrame): The input data.
+            batch_size (int): Batch size for the prediction.
         Returns:
             numpy.ndarray: The predicted class 1 probabilities.
         """
-        logger_callback = LambdaCallback(on_epoch_end=log_epoch)
-        return self.model.predict(
-            inputs,
-            callbacks=[logger_callback],
+        # calculate the total number of batches
+        num_batches = int(np.ceil(inputs.shape[0] / batch_size))  
+        predictions = []
+        
+        for i in range(num_batches):
+            batch_input = inputs[i * batch_size:(i + 1) * batch_size]
+            batch_predictions = self.model.predict(batch_input)
+            predictions.append(batch_predictions)
+            logger.info( f"Predictions batch {i} completed.")
+        predictions = np.concatenate(predictions)
+        logger.info(
+            "All batch predictions complete. "
+            f"Returning {len(predictions)} predictions..."
         )
+        return predictions
 
     def predict(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predict class labels for the given data.
