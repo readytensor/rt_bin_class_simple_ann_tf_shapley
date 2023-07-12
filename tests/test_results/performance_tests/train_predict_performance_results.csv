@@ -1,9 +1,0 @@
-task,num_rows,num_features,exec_time_secs,memory_usage_mb
-train_with_hpt,200,2,34.3141,10.3338
-batch_prediction,200,2,0.2616,2.0865
-train_with_hpt,200,20,31.9641,10.5512
-batch_prediction,200,20,0.3919,2.3284
-train_with_hpt,2000,2,30.4869,10.6134
-batch_prediction,2000,2,0.2441,5.2175
-train_with_hpt,2000,20,35.7755,14.8456
-batch_prediction,2000,20,0.3859,2.595

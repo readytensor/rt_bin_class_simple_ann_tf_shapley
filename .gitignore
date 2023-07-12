@@ -18,9 +18,5 @@ venv.bak/
 .coverage
 .cache
 .pytest_cache/
-coverage.xml
+coverage.html
 *.cover
-
-
-
-

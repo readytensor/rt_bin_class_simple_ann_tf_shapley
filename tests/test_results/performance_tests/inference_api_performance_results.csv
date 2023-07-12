@@ -1,3 +1,0 @@
-endpoint,num_requests_tested,avg_response_time_secs,throughput_reqs_per_sec
-infer,5,0.0372,26.8657
-explain,5,0.0774,12.9183
