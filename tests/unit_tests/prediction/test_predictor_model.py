@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.datasets import make_classification
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LogisticRegression
 
 from src.prediction.predictor_model import (
@@ -86,25 +87,23 @@ def test_fit_predict_evaluate(classifier, synthetic_data):
     assert 0 <= accuracy <= 1
 
 
-def test_save_load(tmpdir_factory, classifier, synthetic_data, hyperparameters):
+def test_save_load(tmpdir, classifier, synthetic_data, hyperparameters):
     """
     Test if the save and load methods work correctly and if the loaded model has the
     same hyperparameters and predictions as the original.
     """
-    # Convert the LocalPath object to a string
-    tmpdir_str = str(tmpdir_factory.mktemp("data"))
-
-    # Specify the file path
-    model_file_path = os.path.join(tmpdir_str, "model.save")
 
     train_X, train_y, test_X, test_y = synthetic_data
     classifier.fit(train_X, train_y)
 
+    # Specify the file path
+    model_dir_path = tmpdir.mkdir("model")
+
     # Save the model
-    classifier.save(model_file_path)
+    classifier.save(model_dir_path)
 
     # Load the model
-    loaded_clf = Classifier.load(model_file_path)
+    loaded_clf = Classifier.load(model_dir_path)
 
     # Check the loaded model has the same hyperparameters as the original classifier
     for param, value in hyperparameters.items():
@@ -172,25 +171,38 @@ def test_predict_with_model(synthetic_data, hyperparameters):
     assert predictions.shape[0] == test_X.shape[0]
 
 
-def test_save_predictor_model(tmpdir_factory, classifier):
+def test_save_predictor_model(tmpdir, synthetic_data, hyperparameters):
     """
     Test that the 'save_predictor_model' function correctly saves a Classifierinstance
     to disk.
     """
-    tmpdir_str = str(tmpdir_factory.mktemp("data"))
-    model_dir_path = os.path.join(tmpdir_str, "model")
-
+    train_X, train_y, _, _ = synthetic_data
+    model_dir_path = os.path.join(tmpdir, "model")
+    classifier = train_predictor_model(train_X, train_y, hyperparameters)
     save_predictor_model(classifier, model_dir_path)
     assert os.path.exists(model_dir_path)
+    assert len(os.listdir(model_dir_path)) >= 1
 
 
-def test_load_predictor_model(tmpdir_factory, classifier, hyperparameters):
+def test_untrained_save_predictor_model_fails(tmpdir, classifier):
+    """
+    Test that the 'save_predictor_model' function correctly raises  NotFittedError
+    when saving an untrained classifier to disk.
+    """
+    with pytest.raises(NotFittedError):
+        model_dir_path = os.path.join(tmpdir, "model")
+        save_predictor_model(classifier, model_dir_path)
+
+
+def test_load_predictor_model(tmpdir, synthetic_data, classifier, hyperparameters):
     """
     Test that the 'load_predictor_model' function correctly loads a Classifier
     instance from disk and that the loaded instance has the correct hyperparameters.
     """
-    tmpdir_str = str(tmpdir_factory.mktemp("data"))
-    model_dir_path = os.path.join(tmpdir_str, "model")
+    train_X, train_y, _, _ = synthetic_data
+    classifier = train_predictor_model(train_X, train_y, hyperparameters)
+
+    model_dir_path = os.path.join(tmpdir, "model")
     save_predictor_model(classifier, model_dir_path)
 
     loaded_clf = load_predictor_model(model_dir_path)

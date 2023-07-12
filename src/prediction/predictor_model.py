@@ -55,13 +55,13 @@ class Classifier:
     model_name = "simple_ANN_tensorflow_binary_classifier"
 
     def __init__(
-            self,
-            D: Optional[int] = None,
-            l1_reg: Optional[float] = 1e-3,
-            l2_reg: Optional[float] = 1e-1,
-            lr: Optional[float] = 1e-3,
-            **kwargs,
-        ):
+        self,
+        D: Optional[int] = None,
+        l1_reg: Optional[float] = 1e-3,
+        l2_reg: Optional[float] = 1e-1,
+        lr: Optional[float] = 1e-3,
+        **kwargs,
+    ):
         """Construct a new binary classifier.
 
         Args:
