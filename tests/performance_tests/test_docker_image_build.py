@@ -1,5 +1,6 @@
 import os
 import time
+import tracemalloc
 
 import docker
 import pytest
@@ -32,6 +33,7 @@ def test_build_time_performance(docker_img_build_perf_results_path: str) -> None
 
     # Start recording
     start_time = time.time()
+    tracemalloc.start()
 
     # build image
     client.images.build(
@@ -43,6 +45,9 @@ def test_build_time_performance(docker_img_build_perf_results_path: str) -> None
     # Stop recording
     end_time = time.time()
     build_time = end_time - start_time
+    _, peak_memory = tracemalloc.get_traced_memory()
+    # Calculate peak memory in MB
+    peak_memory = peak_memory / 10**6
 
     # Get Image Size
     image = client.images.get(img_name)
@@ -52,11 +57,12 @@ def test_build_time_performance(docker_img_build_perf_results_path: str) -> None
     delete_file_if_exists(docker_img_build_perf_results_path)
     store_results_to_csv(
         docker_img_build_perf_results_path,
-        ("task", "img_build_time_sec", "img_size_mb"),
+        ("task", "img_build_time_sec", "img_size_mb", "peak_memory_mb"),
         (
             "docker_image_build",
-            round(build_time, 4),
-            round(image_size, 4),
+            round(build_time, 2),
+            round(image_size, 2),
+            round(peak_memory, 2),
         ),
     )
 
