@@ -180,7 +180,9 @@ def test_get_hpt_space(tuner):
 
 
 def test_run_hyperparameter_tuning(mocker, tuner, mock_data):
-    """Tests the `run_hyperparameter_tuning` method of the `SKOHyperparameterTuner` class.
+    """
+    Tests the `run_hyperparameter_tuning` method of the `SKOHyperparameterTuner`
+    class.
 
     This test verifies that the `run_hyperparameter_tuning` method correctly performs
     the hyperparameter tuning process and returns the best hyperparameters and score.
@@ -205,7 +207,9 @@ def test_run_hyperparameter_tuning(mocker, tuner, mock_data):
 
 
 def test_get_best_hyperparameters(mocker, tuner):
-    """Tests the `get_best_hyperparameters` method of the `SKOHyperparameterTuner` class.
+    """
+    Tests the `get_best_hyperparameters` method of the `SKOHyperparameterTuner`
+    class.
 
     This test verifies that the `get_best_hyperparameters` method correctly returns
     the best hyperparameters from the optimization results.
@@ -228,7 +232,9 @@ def test_get_best_hyperparameters(mocker, tuner):
 
 
 def test_save_hpt_summary_results(mocker, tuner, hpt_results_dir_path):
-    """Tests the `save_hpt_summary_results` method of the `SKOHyperparameterTuner` class.
+    """
+    Tests the `save_hpt_summary_results` method of the `SKOHyperparameterTuner`
+    class.
 
     This test verifies that the `save_hpt_summary_results` method correctly saves
     the hyperparameter tuning results to a file.

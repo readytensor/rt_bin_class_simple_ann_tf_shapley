@@ -7,4 +7,10 @@ services:
       - ./model_inputs_outputs:/opt/model_inputs_outputs
     ports:
       - 8080:8080
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
     command: standby # keep the container running - `standby` defined in entry_point.sh

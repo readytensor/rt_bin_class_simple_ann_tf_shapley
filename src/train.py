@@ -194,8 +194,10 @@ def parse_arguments() -> argparse.Namespace:
         "-t",
         "--tune",
         action="store_true",
-        help="Run hyperparameter tuning before training the model. "
-        + "If not set, use default hyperparameters.",
+        help=(
+            "Run hyperparameter tuning before training the model. "
+            + "If not set, use default hyperparameters.",
+        ),
     )
     return parser.parse_args()
 

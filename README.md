@@ -87,7 +87,6 @@ adaptive_binary_classifier/
 ├── tests/
 │   ├── integration_tests/
 │   ├── performance_tests/
-│   ├── test_resources/
 │   ├── test_results/
 │   │   ├── coverage_tests/
 │   │   └── performance_tests/
@@ -133,7 +132,6 @@ adaptive_binary_classifier/
 - **`tests/`**: This directory contains all the tests for the project and associated resources and results.
   - **`integration_tests/`**: This directory contains the integration tests for the project. We cover four main workflows: data preprocessing, training, prediction, and inference service.
   - **`performance_tests/`**: This directory contains performance tests for the training and batch prediction workflows in the script `test_train_predict.py`. It also contains performance tests for the inference service workflow in the script `test_inference_apis.py`. Helper functions are defined in the script `performance_test_helpers.py`. Fixtures and other setup are contained in the script `conftest.py`.
-  - **`test_resources/`**: This folder contains various resources needed in the tests, such as trained model artifacts (including the preprocessing pipeline, target encoder, explainer, etc.). These resources are used in integration tests and performance tests.
   - **`test_results/`**: This folder contains the results for the performance tests. These are persisted to disk for later analysis.
   - **`unit_tests/`**: This folder contains all the unit tests for the project. It is further divided into subdirectories mirroring the structure of the `src` folder. Each subdirectory contains unit tests for the corresponding script in the `src` folder.
 - **`tmp/`**: This directory is used for storing temporary files which are not necessary to commit to the repository.
