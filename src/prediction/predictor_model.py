@@ -189,30 +189,15 @@ class Classifier:
             ],
         )
 
-    def _predict(self, inputs: pd.DataFrame, batch_size: int = 64) -> np.ndarray:
+    def _predict(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predict class 1 probabilities for the given data.
 
         Args:
             inputs (pandas.DataFrame): The input data.
-            batch_size (int): Batch size for the prediction.
         Returns:
             numpy.ndarray: The predicted class 1 probabilities.
         """
-        # calculate the total number of batches
-        num_batches = int(np.ceil(inputs.shape[0] / batch_size))
-        predictions = []
-
-        for i in range(num_batches):
-            batch_input = inputs[i * batch_size : (i + 1) * batch_size]
-            batch_predictions = self.model.predict(batch_input)
-            predictions.append(batch_predictions)
-            logger.info(f"Predictions batch {i} completed.")
-        predictions = np.concatenate(predictions)
-        logger.info(
-            "All batch predictions complete. "
-            f"Returning {len(predictions)} predictions..."
-        )
-        return predictions
+        return self.model.predict(inputs, verbose=False)
 
     def predict(self, inputs: pd.DataFrame) -> np.ndarray:
         """Predict class labels for the given data.
