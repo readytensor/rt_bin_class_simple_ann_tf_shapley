@@ -195,7 +195,7 @@ class Classifier:
         Args:
             inputs (pandas.DataFrame): The input data.
         Returns:
-            numpy.ndarray: The predicted class 1 probabilities.
+            numpy.ndarray: The predicted class probabilities.
         """
         return self.model.predict(inputs, verbose=False)
 
