@@ -190,7 +190,7 @@ class Classifier:
         )
 
     def _predict(self, inputs: pd.DataFrame) -> np.ndarray:
-        """Predict class 1 probabilities for the given data.
+        """Predict class probabilities for the given data.
 
         Args:
             inputs (pandas.DataFrame): The input data.
