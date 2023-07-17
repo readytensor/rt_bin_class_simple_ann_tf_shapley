@@ -1,5 +1,4 @@
 {
-  "l1_reg": 1e-3,
-  "l2_reg": 1e-1,
+  "activation": "tanh",
   "lr": 1e-3
 }

@@ -422,3 +422,42 @@ class OneHotEncoderMultipleCols(BaseEstimator, TransformerMixin):
         if self.drop_original:
             transformed_data.drop(self.fitted_vars, axis=1, inplace=True)
         return transformed_data
+
+
+class ColumnOrderTransformer(BaseEstimator, TransformerMixin):
+    """
+    A custom transformer that keeps the columns in the same order
+    to ensure reproducibility.
+    """
+
+    def __init__(self):
+        """
+        Initializes a new instance of the `ColumnOrderTransformer` class.
+        """
+        super().__init__()
+        self.column_order = None
+
+    def fit(self, X: pd.DataFrame, y=None):
+        """
+        Memorizes the order of DataFrame columns.
+
+        Returns:
+            self
+        """
+        self.column_order = sorted(X.columns.tolist())
+        return self
+
+    def transform(self, X: pd.DataFrame):
+        """
+        Re-arranges the DataFrame columns to match the original sorted order.
+
+        Args:
+            X : pandas DataFrame
+                Input data to be transformed.
+        Returns:
+            X : pandas DataFrame
+                Transformed data.
+        """
+        # This will raise a KeyError if any of the original columns are missing
+        X = X[self.column_order]
+        return X

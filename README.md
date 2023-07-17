@@ -39,7 +39,7 @@ project_repo/
 │       └── predictions/
 ├── requirements/
 │   ├── requirements.txt
-│   └── requirements_quality.txt
+│   ├── requirements_quality.txt
 │   └── requirements_test.txt
 ├── src/
 │   ├── config/

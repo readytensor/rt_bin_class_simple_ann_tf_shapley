@@ -109,6 +109,7 @@ def get_preprocess_pipeline(data_schema: Any, preprocessing_config: dict) -> Pip
     one_hot_encoder = transformers.OneHotEncoderMultipleCols(
         ohe_columns=data_schema.categorical_features
     )
+    column_sorter = transformers.ColumnOrderTransformer()
 
     pipeline = Pipeline(
         [
@@ -127,6 +128,7 @@ def get_preprocess_pipeline(data_schema: Any, preprocessing_config: dict) -> Pip
             ("duplicated_feature_dropper", duplicated_feature_dropper),
             ("one_hot_encoder", one_hot_encoder),
             ("correlated_feature_dropper", correlated_feature_dropper),
+            ("column_sorter", column_sorter),
         ]
     )
 

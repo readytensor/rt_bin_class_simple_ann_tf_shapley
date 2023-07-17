@@ -1,6 +1,6 @@
 import os
 import warnings
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Union
 
 import joblib
 import numpy as np
@@ -12,7 +12,6 @@ from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.regularizers import l1_l2
 
 from logger import get_logger
 
@@ -82,6 +81,30 @@ class InfCostStopCallback(Callback):
             self.model.stop_training = True
 
 
+def validate_activation(activation: str) -> Union[str, None]:
+    """
+    Validate the activation.
+
+    Args:
+        activation (str): Name of the activation function.
+
+    Returns:
+        Union[str, None]: validated activation.
+
+    Raises:
+        ValueError: If the activation string does not match any known
+                   activation functions.
+    """
+    if activation not in ["tanh", "relu", "none", None]:
+        raise ValueError(
+            f"Error: Unrecognized activation type: {activation}\n"
+            "Must be one of ['relu', 'tanh', 'none']"
+        )
+    if activation == "none":
+        activation = None
+    return activation
+
+
 class Classifier:
     """A wrapper class for the ANN Binary classifier in Tensorflow."""
 
@@ -90,8 +113,7 @@ class Classifier:
     def __init__(
         self,
         D: Optional[int] = None,
-        l1_reg: Optional[float] = 1e-3,
-        l2_reg: Optional[float] = 1e-1,
+        activation: Optional[str] = "tanh",
         lr: Optional[float] = 1e-3,
         **kwargs,
     ):
@@ -100,16 +122,14 @@ class Classifier:
         Args:
             D (int, optional): Size of the input layer.
                 Defaults to None (set in `fit`).
-            l1_reg (int, optional): L1 regularization penalty.
-                Defaults to 1e-3.
-            l2_reg (int, optional): L2 regularization penalty.
-                Defaults to 1e-1.
+            activation (str, optional): Activation function for hidden layers.
+                Options: ["relu", "tanh", "none"]
+                Defaults to "tanh".
             lr (int, optional): Learning rate for optimizer.
                 Defaults to 1e-3.
         """
         self.D = D
-        self.l1_reg = np.float(l1_reg)
-        self.l2_reg = np.float(l2_reg)
+        self.activation = validate_activation(activation)
         self.lr = lr
         self._log_period = 10  # logging per 10 epochs
         # defer building model until fit because we need to know
@@ -118,22 +138,20 @@ class Classifier:
         self.model = None
 
     def build_model(self):
-        M1 = max(2, int(self.D * 1.5))
-        M2 = max(5, int(self.D * 0.33))
+        M1 = max(100, int(self.D * 4))
+        M2 = max(30, int(self.D * 0.5))
 
-        reg = l1_l2(l1=self.l1_reg, l2=self.l2_reg)
         input_ = Input(self.D)
         x = input_
-        x = Dense(M1, activity_regularizer=reg, activation="relu")(x)
-        x = Dense(M2, activity_regularizer=reg, activation="relu")(x)
-        x = Dense(1, activity_regularizer=reg, activation="sigmoid")(x)
+        x = Dense(M1, activation=self.activation)(x)
+        x = Dense(M2, activation=self.activation)(x)
+        x = Dense(1, activation="sigmoid")(x)
         output_ = x
         model = Model(input_, output_)
         # model.summary()
         model.compile(
             loss=BinaryCrossentropy(),
             optimizer=Adam(learning_rate=self.lr),
-            # optimizer=SGD(learning_rate=self.lr),
             metrics=["accuracy"],
         )
         return model
@@ -253,8 +271,7 @@ class Classifier:
             raise NotFittedError("Model is not fitted yet.")
         model_params = {
             "D": self.D,
-            "l1_reg": self.l1_reg,
-            "l2_reg": self.l2_reg,
+            "activation": self.activation,
             "lr": self.lr,
         }
         joblib.dump(model_params, os.path.join(model_dir_path, MODEL_PARAMS_FNAME))
@@ -281,10 +298,9 @@ class Classifier:
 
     def __str__(self):
         return (
-            f"Model name: {self.model_name}("
-            f"D: {self.D}, "
-            f"l1_reg: {self.l1_reg})"
-            f"l2_reg: {self.l2_reg})"
+            f"Model name: {self.model_name}\n"
+            f"D: {self.D}\n"
+            f"activation: {self.activation}\n"
             f"lr: {self.lr})"
         )
 
