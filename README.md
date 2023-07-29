@@ -22,53 +22,6 @@ Additionally, the implementation contains the following features:
 - **Test automation**: Tox is used for test automation.
 ## Project Structure
 The following is the directory structure of the project:
-```txt
-project_repo/
-├── examples/
-├── model_inputs_outputs/
-│   ├── inputs/
-│   │   ├── data/
-│   │   │   ├── testing/
-│   │   │   └── training/
-│   │   └── schema/
-│   ├── model/
-│   │   └── artifacts/
-│   └── outputs/
-│       ├── errors/
-│       ├── hpt_outputs/
-│       └── predictions/
-├── requirements/
-│   ├── requirements.txt
-│   ├── requirements_quality.txt
-│   └── requirements_test.txt
-├── src/
-│   ├── config/
-│   ├── data_models/
-│   ├── hyperparameter_tuning/
-│   ├── prediction/
-│   ├── preprocessing/
-│   ├── schema/
-│   └── xai/
-├── tests/
-│   ├── integration_tests/
-│   ├── performance_tests/
-│   ├── test_results/
-│   │   ├── coverage_tests/
-│   │   └── performance_tests/
-│   └── unit_tests/
-│       ├── (mirrors /src structure)
-│       └── ...
-├── tmp/
-├── .dockerignore
-├── .gitignore
-├── docker-compose.yaml
-├── Dockerfile
-├── entrypoint.sh
-├── LICENSE
-├── pytest.ini
-├── README.md
-└── tox.ini
-```
 - **`examples/`**: This directory contains example files for the titanic dataset. Three files are included: `titanic_schema.json`, `titanic_train.csv` and `titanic_test.csv`. You can place these files in the `inputs/schema`, `inputs/data/training` and `inputs/data/testing` folders, respectively.
 - **`model_inputs_outputs/`**: This directory contains files that are either inputs to, or outputs from, the model. When running the model locally (i.e. without using docker), this directory is used for model inputs and outputs. This directory is further divided into:
   - **`/inputs/`**: This directory contains all the input files for this project, including the `data` and `schema` files. The `data` is further divided into `testing` and `training` subsets.
@@ -291,4 +244,3 @@ Alternatively, you can let tox handle the installation of test dependencies for 
 This project is provided under the MIT License. Please see the [LICENSE](LICENSE) file for more information.
 ## Contact Information
 Repository created by Ready Tensor, Inc. (https://www.readytensor.ai/)
-with Shapley Explanations

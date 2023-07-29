@@ -57,7 +57,7 @@ class StoppingCriterion(EarlyStopper):
         return False
 
 
-class SKOHyperparameterTuner:
+class HyperParameterTuner:
     """Scikit-Optimize hyperparameter tuner class.
 
     Args:
@@ -98,7 +98,7 @@ class SKOHyperparameterTuner:
         self.default_hyperparameter_vals = [
             self.default_hyperparameters[hp] for hp in self.hyperparameter_names
         ]
-        self.hpt_space = self.get_hpt_space()
+        self.hpt_space = self._get_hpt_space()
 
     def _get_objective_func(
         self,
@@ -136,7 +136,7 @@ class SKOHyperparameterTuner:
 
         return objective_func
 
-    def get_hpt_space(self) -> List[Union[Categorical, Integer, Real]]:
+    def _get_hpt_space(self) -> List[Union[Categorical, Integer, Real]]:
         """Get the hyperparameter tuning search space.
 
         Returns:
@@ -280,7 +280,7 @@ def tune_hyperparameters(
     """
     Tune hyperparameters using Scikit-Optimize (SKO) hyperparameter tuner.
 
-    This function creates an instance of the SKOHyperparameterTuner with the
+    This function creates an instance of the HyperParameterTuner with the
     provided hyperparameters and tuning specifications, then runs the hyperparameter
     tuning process and returns the best hyperparameters.
 
@@ -304,7 +304,7 @@ def tune_hyperparameters(
     """
     default_hyperparameters = read_json_as_dict(default_hyperparameters_file_path)
     hpt_specs = read_json_as_dict(hpt_specs_file_path)
-    hyperparameter_tuner = SKOHyperparameterTuner(
+    hyperparameter_tuner = HyperParameterTuner(
         default_hyperparameters=default_hyperparameters,
         hpt_specs=hpt_specs,
         hpt_results_dir_path=hpt_results_dir_path,

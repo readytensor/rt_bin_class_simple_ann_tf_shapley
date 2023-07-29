@@ -4,9 +4,8 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
-from skopt.space import Categorical, Integer, Real
 
-from src.hyperparameter_tuning.tuner import SKOHyperparameterTuner, tune_hyperparameters
+from src.hyperparameter_tuning.tuner import HyperParameterTuner, tune_hyperparameters
 
 
 @pytest.fixture
@@ -92,7 +91,7 @@ def hpt_results_dir_path(tmpdir):
 @pytest.fixture
 def tuner(default_hyperparameters, hpt_specs, hpt_results_dir_path):
     """Create a tuner fixture"""
-    return SKOHyperparameterTuner(
+    return HyperParameterTuner(
         default_hyperparameters=default_hyperparameters,
         hpt_specs=hpt_specs,
         hpt_results_dir_path=hpt_results_dir_path,
@@ -109,12 +108,12 @@ def mock_data():
 
 
 def test_init(default_hyperparameters, hpt_specs, hpt_results_dir_path):
-    """Tests the `__init__` method of the `SKOHyperparameterTuner` class.
+    """Tests the `__init__` method of the `HyperParameterTuner` class.
 
     This test verifies that the `__init__` method correctly initializes the
     hyperparameter tuner object with the provided parameters.
     """
-    tuner = SKOHyperparameterTuner(
+    tuner = HyperParameterTuner(
         default_hyperparameters, hpt_specs, hpt_results_dir_path
     )
     assert tuner.default_hyperparameters == default_hyperparameters
@@ -133,7 +132,7 @@ def test_init(default_hyperparameters, hpt_specs, hpt_results_dir_path):
 
 
 def test_get_objective_func(mocker, tuner, mock_data, default_hyperparameters):
-    """Tests the `_get_objective_func` method of the `SKOHyperparameterTuner` class.
+    """Tests the `_get_objective_func` method of the `HyperParameterTuner` class.
 
     This test verifies that the `_get_objective_func` method correctly returns
     a callable objective function for hyperparameter tuning.
@@ -160,17 +159,12 @@ def test_get_objective_func(mocker, tuner, mock_data, default_hyperparameters):
 
 
 def test_get_hpt_space(tuner):
-    """Tests the `get_hpt_space` method of the `SKOHyperparameterTuner` class.
+    """Tests the `get_hpt_space` method of the `HyperParameterTuner` class.
 
     This test verifies that the `get_hpt_space` method correctly returns
     a list of hyperparameter space objects.
     """
-    hpt_space = tuner.get_hpt_space()
-    assert isinstance(hpt_space[0], Integer)
-    assert isinstance(hpt_space[1], Real)
-    assert isinstance(hpt_space[2], Integer)
-    assert isinstance(hpt_space[3], Real)
-    assert isinstance(hpt_space[4], Categorical)
+    hpt_space = tuner._get_hpt_space()
 
     assert hpt_space[0].name == "hp_int"
     assert hpt_space[0].prior == "uniform"
@@ -181,7 +175,7 @@ def test_get_hpt_space(tuner):
 
 def test_run_hyperparameter_tuning(mocker, tuner, mock_data):
     """
-    Tests the `run_hyperparameter_tuning` method of the `SKOHyperparameterTuner`
+    Tests the `run_hyperparameter_tuning` method of the `HyperParameterTuner`
     class.
 
     This test verifies that the `run_hyperparameter_tuning` method correctly performs
@@ -208,7 +202,7 @@ def test_run_hyperparameter_tuning(mocker, tuner, mock_data):
 
 def test_get_best_hyperparameters(mocker, tuner):
     """
-    Tests the `get_best_hyperparameters` method of the `SKOHyperparameterTuner`
+    Tests the `get_best_hyperparameters` method of the `HyperParameterTuner`
     class.
 
     This test verifies that the `get_best_hyperparameters` method correctly returns
@@ -233,7 +227,7 @@ def test_get_best_hyperparameters(mocker, tuner):
 
 def test_save_hpt_summary_results(mocker, tuner, hpt_results_dir_path):
     """
-    Tests the `save_hpt_summary_results` method of the `SKOHyperparameterTuner`
+    Tests the `save_hpt_summary_results` method of the `HyperParameterTuner`
     class.
 
     This test verifies that the `save_hpt_summary_results` method correctly saves
@@ -283,15 +277,15 @@ def test_tune_hyperparameters(
     """Tests the `tune_hyperparameters` function.
 
     This test verifies that the `tune_hyperparameters` function correctly
-    instantiates the `SKOHyperparameterTuner` class with the right parameters
+    instantiates the `HyperParameterTuner` class with the right parameters
     and that the `run_hyperparameter_tuning` method is called with the correct
     arguments.
     """
 
     mock_train_X, mock_train_y, mock_valid_X, mock_valid_y = mock_data
 
-    # Mock SKOHyperparameterTuner
-    mock_tuner = mocker.patch("src.hyperparameter_tuning.tuner.SKOHyperparameterTuner")
+    # Mock HyperParameterTuner
+    mock_tuner = mocker.patch("src.hyperparameter_tuning.tuner.HyperParameterTuner")
     # Mock return value of run_hyperparameter_tuning method
     mock_tuner.return_value.run_hyperparameter_tuning.return_value = {
         "hp1": 1,

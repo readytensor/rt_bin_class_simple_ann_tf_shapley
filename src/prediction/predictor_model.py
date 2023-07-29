@@ -77,7 +77,7 @@ class InfCostStopCallback(Callback):
     def on_epoch_end(self, epoch, logs={}):
         loss_val = logs.get("loss")
         if loss_val == COST_THRESHOLD or tf.math.is_nan(loss_val):
-            # print("Cost is inf, so stopping training!!")
+            logger.info(f"Cost is {loss_val}, so stopping training!!")
             self.model.stop_training = True
 
 
@@ -95,12 +95,12 @@ def validate_activation(activation: str) -> Union[str, None]:
         ValueError: If the activation string does not match any known
                    activation functions.
     """
-    if activation not in ["tanh", "relu", "none", None]:
+    if activation not in ["tanh", "relu", "none", "None", None]:
         raise ValueError(
             f"Error: Unrecognized activation type: {activation}\n"
             "Must be one of ['relu', 'tanh', 'none']"
         )
-    if activation == "none":
+    if activation in ["none", "None"]:
         activation = None
     return activation
 
@@ -129,8 +129,8 @@ class Classifier:
                 Defaults to 1e-3.
         """
         self.D = D
-        self.activation = validate_activation(activation)
-        self.lr = lr
+        self.activation = str(activation).strip()
+        self.lr = float(lr)
         self._log_period = 10  # logging per 10 epochs
         # defer building model until fit because we need to know
         # dimensionality of data (D) to define the size of
@@ -138,6 +138,9 @@ class Classifier:
         self.model = None
 
     def build_model(self):
+
+        self.activation = validate_activation(self.activation)
+        self.D = int(self.D)
         M1 = max(100, int(self.D * 4))
         M2 = max(30, int(self.D * 0.5))
 
@@ -297,10 +300,11 @@ class Classifier:
         return classifier_model
 
     def __str__(self):
+        # sort params alphabetically for unit test to run successfully
         return (
-            f"Model name: {self.model_name}\n"
-            f"D: {self.D}\n"
-            f"activation: {self.activation}\n"
+            f"Model name: {self.model_name} ("
+            f"activation: {self.activation}, "
+            f"D: {self.D}, "
             f"lr: {self.lr})"
         )
 

@@ -12,7 +12,7 @@ from src.schema.data_schema import BinaryClassificationSchema
 from src.serve import create_app
 from src.serve_utils import get_model_resources
 from src.train import run_training
-from src.xai.explainer import ShapClassificationExplainer
+from src.xai.explainer import ClassificationExplainer
 
 
 @pytest.fixture
@@ -384,7 +384,7 @@ def sample_explanation_response_data(schema_dict):
                 },
             }
         ],
-        "explanationMethod": ShapClassificationExplainer.EXPLANATION_METHOD,
+        "explanationMethod": ClassificationExplainer.EXPLANATION_METHOD,
     }
 
 
