@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "language": "python3.9",
+  "osDependencies": ["ca-certificates", "dos2unix"],
+  "languageDependencies": ["./requirements/requirements.txt"],
+  "ignore": ["tmp", "tests", "requirements", "examples"],
+  "dockerfile": false,
+  "commands": [
+    {
+      "name": "train",
+      "command": "python ./src/train.py"
+    },
+    {
+      "name": "predict",
+      "command": "python ./src/predict.py"
+    },
+    {
+      "name": "serve",
+      "command": "python ./src/serve.py"
+    }
+  ]
+}
